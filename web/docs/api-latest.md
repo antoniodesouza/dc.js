@@ -112,7 +112,7 @@ function allows the library to smooth out the rendering by throttling events and
 the most recent event.
 
 ```js
-chart.renderlet(function(chart){
+chart.on('renderlet', function(chart) {
     // smooth the rendering through event throttling
     dc.events.trigger(function(){
         // focus some other chart to the range selected by user on this chart
@@ -492,15 +492,15 @@ given.
 #### .renderlet(renderletFunction)
 A renderlet is similar to an event listener on rendering event. Multiple renderlets can be added
 to an individual chart.  Each time a chart is rerendered or redrawn the renderlets are invoked
-right after the chart finishes its own drawing routine, giving you a way to modify the svg
+right after the chart finishes its transitions, giving you a way to modify the svg
 elements. Renderlet functions take the chart instance as the only input parameter and you can
 use the dc API or use raw d3 to achieve pretty much any effect.
 
 @Deprecated - Use [Listeners](#Listeners) with a 'renderlet' prefix
-Generates a random key for the renderlet, which makes it hard for removal.
+Generates a random key for the renderlet, which makes it hard to remove.
 ```js
-// renderlet function
-chart.renderlet(function(chart){
+// do this instead of .renderlet(function(chart) { ... })
+chart.on("renderlet", function(chart){
     // mix of dc API and d3 manipulation
     chart.select('g.y').style('display', 'none');
     // its a closure so you can also access other chart variable available in the closure scope
@@ -545,6 +545,9 @@ All dc chart instance supports the following listeners.
 #### .on('renderlet', function(chart, filter){...})
 This listener function will be invoked after transitions after redraw and render. Replaces the
 deprecated `.renderlet()` method.
+
+#### .on('pretransition', function(chart, filter){...})
+Like `.on('renderlet', ...)` but the event is fired before transitions start.
 
 #### .on('preRender', function(chart){...})
 This listener function will be invoked before chart rendering.
@@ -639,6 +642,11 @@ Includes: [Color Mixin](#color-mixin), [Margin Mixin](#margin-mixin), [Base Mixi
 
 Coordinate Grid is an abstract base chart designed to support a number of coordinate grid based
 concrete chart types, e.g. bar chart, line chart, and bubble chart.
+
+#### .rescale()
+When changing the domain of the x or y scale, it is necessary to tell the chart to recalculate
+and redraw the axes. (`.rescale()` is called automatically when the x or y scale is replaced
+with `.x()` or `.y()`, and has no effect on elastic scales.)
 
 #### .rangeChart([chart])
 Get or set the range selection chart associated with this instance. Setting the range selection
@@ -820,7 +828,7 @@ Zoom this chart to focus on the given range. The given range should be an array 
 to null, then the zoom will be reset. _For focus to work elasticX has to be turned off;
 otherwise focus will be ignored._
 ```js
-chart.renderlet(function(chart){
+chart.on('renderlet', function(chart) {
     // smooth the rendering through event throttling
     dc.events.trigger(function(){
         // focus some other chart to the range selected by user on this chart
@@ -1106,7 +1114,8 @@ functions, splines, and cubic interpolation.  This is passed to
 [d3.svg.area.interpolate](https://github.com/mbostock/d3/wiki/SVG-Shapes#area_interpolate),
 where you can find a complete list of valid arguments
 
-#### .tension([value]) Gets or sets the tension to use for lines drawn, in the range 0 to 1.
+#### .tension([value])
+Gets or sets the tension to use for lines drawn, in the range 0 to 1.
 This parameter further customizes the interpolation behavior.  It is passed to
 [d3.svg.line.tension](https://github.com/mbostock/d3/wiki/SVG-Shapes#line_tension) and
 [d3.svg.area.tension](https://github.com/mbostock/d3/wiki/SVG-Shapes#area_tension).  Default:
@@ -1951,13 +1960,11 @@ chart.rowsLabel(function(d) { return d; });
 
 #### .rows([values])
 Gets or sets the values used to create the rows of the heatmap, as an array. By default, all
-the values will be fetched from the data using the value accessor, and they will be sorted in
-ascending order.
+the values will be fetched from the data using the value accessor.
 
 #### .cols([keys])
 Gets or sets the keys used to create the columns of the heatmap, as an array. By default, all
-the values will be fetched from the data using the key accessor, and they will be sorted in
-ascending order.
+the values will be fetched from the data using the key accessor.
 
 #### .boxOnClick([handler])
 Gets or sets the handler that fires when an individual cell is clicked in the heatmap.
